@@ -1,0 +1,36 @@
+use role sysadmin;
+create warehouse if not exists COMPUTE_WH with warehouse_size = 'XSMALL' auto_suspend = 120;
+
+create database if not exists s_demo;
+use database s_demo;
+create schema if not exists s2;
+use schema s2;
+show tables;
+
+CREATE TABLE spotify_tracks (
+    track_id VARCHAR(255),
+    track_name VARCHAR(255),
+    track_url VARCHAR(255),
+    track_popularity INT,
+    album_id VARCHAR(255),
+    album_name VARCHAR(255),
+    release_date DATE,
+    artist_ids VARCHAR(255),
+    artist_names VARCHAR(255)
+);
+
+
+CREATE OR REPLACE FILE FORMAT csv_file_format
+TYPE = 'CSV'
+FIELD_DELIMITER = ','
+SKIP_HEADER = 1
+FIELD_OPTIONALLY_ENCLOSED_BY = '"';
+
+create or replace stage customer_ext_stage
+  url='s3://spotify-data-scrapping/transformed-data/tracks_data/'
+  credentials=(aws_key_id='' aws_secret_key='')
+  file_format = csv_file_format;
+
+copy into spotify_tracks
+  from @customer_ext_stage/tracks_transformed_2025-01-05T16:48:51.880674.csv
+  file_format = csv_file_format
